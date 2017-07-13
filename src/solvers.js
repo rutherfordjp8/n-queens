@@ -67,6 +67,10 @@ window.findNQueensSolution = function(n) {
   }
 
   var getSolution = function( solution, rowCount ) {
+    if ( solutions.length === 1 ) {
+      return;
+    }
+    
     if ( n === rowCount ) {
       solutions.push( solution );
     } else {
