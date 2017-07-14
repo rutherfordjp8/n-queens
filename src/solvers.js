@@ -58,15 +58,15 @@ window.findNQueensSolution = function(n) {
   var solutions = [];
   var row = [];
   var columns = [];
-  var majorDiagonals = [];
-  var minorDiagonals = [];
+  var majorDiagonals = 0;
+  var minorDiagonals = 0;
   var rowCount = 0;
 
   for ( var i = 0; i !== n; i++ ) {
     row.push( 0 );
   }
 
-  var getSolution = function( solution, rowCount ) {
+  var getSolution = function( solution, rowCount, majorDiagonals, minorDiagonals ) {
     if ( solutions.length === 1 ) {
       return;
     }
@@ -75,23 +75,19 @@ window.findNQueensSolution = function(n) {
       solutions.push( solution );
     } else {
       for ( var i = 0; i !== n; i++ ) {
-        if ( columns[ i ] || majorDiagonals[ i ] || minorDiagonals[ i ] ) {
+        if ( columns[ i ] || Math.pow( 2, i ) & majorDiagonals || Math.pow( 2, i ) & minorDiagonals ) {
           continue;
         } else {
           var nextRow = row.slice();
           nextRow[ i ] = 1;
           columns[ i ] = 1;
-          majorDiagonals[ i ] = 1;
-          minorDiagonals[ i ] = 1;
-          majorDiagonals.unshift( 0 );
-          var copy = minorDiagonals.shift();
+          majorDiagonals += Math.pow( 2, i );
+          minorDiagonals += Math.pow( 2, i );
 
-          getSolution( solution.concat( [ nextRow ] ), rowCount + 1);
+          getSolution( solution.concat( [ nextRow ] ), rowCount + 1, majorDiagonals << 1, minorDiagonals >> 1 );
 
-          minorDiagonals.unshift( copy );
-          majorDiagonals.shift();
-          minorDiagonals[ i ] = 0;
-          majorDiagonals[ i ] = 0;
+          minorDiagonals -= Math.pow( 2, i );
+          majorDiagonals -= Math.pow( 2, i );
           columns[ i ] = 0;
         }
       }
@@ -103,7 +99,7 @@ window.findNQueensSolution = function(n) {
   } else if ( n === 3 ) {
     solutions = [[ [ 0, 0, 0], [ 0, 0, 0], [ 0, 0, 0] ]];
   } else {
-    getSolution([], rowCount);
+    getSolution([], rowCount, 0, 0 );
   }
 
   console.log('Single solution for ' + n + ' queens:', JSON.stringify(solutions[ 0 ]));
@@ -112,39 +108,37 @@ window.findNQueensSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
-  var solutionCount = [];
+  var solutions = [];
   var row = [];
   var columns = [];
-  var majorDiagonals = [];
-  var minorDiagonals = [];
+  var majorDiagonals = 0;
+  var minorDiagonals = 0;
   var rowCount = 0;
 
   for ( var i = 0; i !== n; i++ ) {
     row.push( 0 );
   }
 
-  var getSolution = function( solution, rowCount ) {
+  var getSolution = function( solution, rowCount, majorDiagonals, minorDiagonals ) {
     if ( n === rowCount ) {
-      solutionCount.push( solution );
+      solutions.push( solution );
     } else {
       for ( var i = 0; i !== n; i++ ) {
-        if ( columns[ i ] || majorDiagonals[ i ] || minorDiagonals[ i ] ) {
+        var binaryIndex = Math.pow( 2, i );
+        
+        if ( columns[ i ] || binaryIndex & majorDiagonals || binaryIndex & minorDiagonals ) {
           continue;
         } else {
           var nextRow = row.slice();
           nextRow[ i ] = 1;
           columns[ i ] = 1;
-          majorDiagonals[ i ] = 1;
-          minorDiagonals[ i ] = 1;
-          majorDiagonals.unshift( 0 );
-          var copy = minorDiagonals.shift();
+          majorDiagonals += binaryIndex;
+          minorDiagonals += binaryIndex;
 
-          getSolution( solution.concat( [ nextRow ] ), rowCount + 1);
+          getSolution( solution.concat( [ nextRow ] ), rowCount + 1, majorDiagonals << 1, minorDiagonals >> 1 );
 
-          minorDiagonals.unshift( copy );
-          majorDiagonals.shift();
-          minorDiagonals[ i ] = 0;
-          majorDiagonals[ i ] = 0;
+          minorDiagonals -= binaryIndex;
+          majorDiagonals -= binaryIndex;
           columns[ i ] = 0;
         }
       }
@@ -156,9 +150,9 @@ window.countNQueensSolutions = function(n) {
   } else if ( n === 3 ) {
     return 0;
   } else {
-    getSolution([], rowCount);
+    getSolution([], rowCount, 0, 0 );
   }
 
-  console.log('Number of solutions for ' + n + ' queens:', JSON.stringify(solutionCount.length));
-  return solutionCount.length;
+  console.log('Single solution for ' + n + ' queens:', JSON.stringify(solutions.length));
+  return solutions.length;
 };
