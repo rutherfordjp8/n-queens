@@ -57,7 +57,7 @@ window.countNRooksSolutions = function(n) {
 window.findNQueensSolution = function(n) {
   var solutions = [];
   var row = [];
-  var columns = [];
+  var columns = 0;
   var majorDiagonals = 0;
   var minorDiagonals = 0;
   var rowCount = 0;
@@ -75,20 +75,22 @@ window.findNQueensSolution = function(n) {
       solutions.push( solution );
     } else {
       for ( var i = 0; i !== n; i++ ) {
-        if ( columns[ i ] || Math.pow( 2, i ) & majorDiagonals || Math.pow( 2, i ) & minorDiagonals ) {
+        var binaryIndex = Math.pow( 2, i );
+
+        if ( binaryIndex & columns || binaryIndex & majorDiagonals || binaryIndex & minorDiagonals ) {
           continue;
         } else {
           var nextRow = row.slice();
           nextRow[ i ] = 1;
-          columns[ i ] = 1;
-          majorDiagonals += Math.pow( 2, i );
-          minorDiagonals += Math.pow( 2, i );
+          columns += binaryIndex;
+          majorDiagonals += binaryIndex;
+          minorDiagonals += binaryIndex;
 
           getSolution( solution.concat( [ nextRow ] ), rowCount + 1, majorDiagonals << 1, minorDiagonals >> 1 );
 
-          minorDiagonals -= Math.pow( 2, i );
-          majorDiagonals -= Math.pow( 2, i );
-          columns[ i ] = 0;
+          minorDiagonals -= binaryIndex;
+          majorDiagonals -= binaryIndex;
+          columns -= binaryIndex;
         }
       }
     }
@@ -108,51 +110,53 @@ window.findNQueensSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
-  var solutions = [];
-  var row = [];
-  var columns = [];
+  var solutions = 0;
+  var columns = 0;
   var majorDiagonals = 0;
   var minorDiagonals = 0;
   var rowCount = 0;
 
-  for ( var i = 0; i !== n; i++ ) {
-    row.push( 0 );
-  }
-
-  var getSolution = function( solution, rowCount, majorDiagonals, minorDiagonals ) {
+  var getSolution = function( rowCount, majorDiagonals, minorDiagonals ) {
     if ( n === rowCount ) {
-      solutions.push( solution );
+      solutions++;
     } else {
       for ( var i = 0; i !== n; i++ ) {
         var binaryIndex = Math.pow( 2, i );
         
-        if ( columns[ i ] || binaryIndex & majorDiagonals || binaryIndex & minorDiagonals ) {
+        if ( rowCount === 0 && i === Math.ceil( n / 2 ) && n % 2 === 0 ) {
+          solutions = 2 * solutions;
+          
+          return;
+        }
+        
+        if ( binaryIndex & columns || binaryIndex & majorDiagonals || binaryIndex & minorDiagonals ) {
           continue;
         } else {
-          var nextRow = row.slice();
-          nextRow[ i ] = 1;
-          columns[ i ] = 1;
+          columns += binaryIndex;
           majorDiagonals += binaryIndex;
           minorDiagonals += binaryIndex;
 
-          getSolution( solution.concat( [ nextRow ] ), rowCount + 1, majorDiagonals << 1, minorDiagonals >> 1 );
+          getSolution( rowCount + 1, majorDiagonals << 1, minorDiagonals >> 1 );
 
           minorDiagonals -= binaryIndex;
           majorDiagonals -= binaryIndex;
-          columns[ i ] = 0;
+          columns -= binaryIndex;
         }
       }
     }
   };
-
+  
+  if ( n === 0 ) {
+    return 1;
+  }
   if ( n === 2 ) {
     return 0;
   } else if ( n === 3 ) {
     return 0;
   } else {
-    getSolution([], rowCount, 0, 0 );
+    getSolution( rowCount, 0, 0 );
   }
 
-  console.log('Single solution for ' + n + ' queens:', JSON.stringify(solutions.length));
-  return solutions.length;
+  console.log('Number of solution for ' + n + ' queens:', JSON.stringify(solutions));
+  return solutions;
 };
